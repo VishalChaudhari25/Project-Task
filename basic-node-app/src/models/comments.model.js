@@ -1,21 +1,26 @@
 module.exports = (sequelize, DataTypes) => {
   const Comment = sequelize.define('Comment', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
     description: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: false,
     },
     postId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: { model: 'Posts', key: 'id' },
-      onDelete: 'CASCADE'
+      onDelete: 'CASCADE',
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: { model: 'Users', key: 'id' },
-      onDelete: 'CASCADE'
-    }
+      onDelete: 'CASCADE',
+    },
   });
 
   Comment.associate = (models) => {

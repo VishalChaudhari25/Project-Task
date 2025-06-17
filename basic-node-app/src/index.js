@@ -13,7 +13,9 @@ app.use(express.json());
 app.use('/users', userRoutes);
 app.use('/posts', postRoutes);
 app.use('/comments', commentRoutes); 
-
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
 // 404 fallback
 app.use((req, res) => {
   res.status(404).send('Route not found');

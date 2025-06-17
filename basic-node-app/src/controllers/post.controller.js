@@ -1,16 +1,14 @@
-const db = require('../models');
-const Post = db.Post;
-const User = db.User;
+const { Post, User } = require('../models');
 
 exports.createPost = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const { title, description, comments } = req.body;
+    const userId = req.params.userId; // UUID string
+    const { title, description } = req.body;
 
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const post = await Post.create({ title, description, comments, userId });
+    const post = await Post.create({ title, description, userId });
 
     res.status(201).json(post);
   } catch (err) {
@@ -22,8 +20,7 @@ exports.createPost = async (req, res) => {
 exports.getPostsByUser = async (req, res) => {
   try {
     const userId = req.params.userId;
-    console.log("userId")
-    const posts = await Post.findAll();
+    const posts = await Post.findAll({ where: { userId } });
     res.json(posts);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

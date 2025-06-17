@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const config = require('../config/db.config'); // your config with databaseUrl
+const config = require('../config/db.config');
 
 const sequelize = new Sequelize(config.databaseUrl, {
   dialect: 'postgres',
@@ -16,7 +16,7 @@ db.User = require('./user.model')(sequelize, DataTypes);
 db.Post = require('./post.model')(sequelize, DataTypes);
 db.Comment = require('./comments.model')(sequelize, DataTypes);
 
-// Define associations
+// Associations with UUID foreign keys
 
 // User-Post
 db.User.hasMany(db.Post, { foreignKey: 'userId', as: 'posts' });
