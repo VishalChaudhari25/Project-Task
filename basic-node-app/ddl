@@ -21,3 +21,11 @@ CREATE TABLE public."posts" (
     title TEXT NOT NULL,
     description TEXT
 );
+
+---public."comments" defination
+CREATE TABLE public."comments" (
+  id SERIAL PRIMARY KEY,
+  description TEXT NOT NULL,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
