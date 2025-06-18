@@ -1,6 +1,6 @@
 const db = require('../models');
 const User = db.User;
-const { hashPassword, comparePassword } = require('../utils/hashPassword');
+const { hashPassword, comparePassword } = require('../utils/hashpassword');
 
 // Create new user (hash password before saving)
 exports.createUser = async (req, res) => {
