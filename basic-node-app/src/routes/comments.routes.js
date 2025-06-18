@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const commentController = require('../controllers/comments.controller');
+const authenticateToken = require('../middleware/authmiddleware');
+const commentsController = require('../controllers/comments.controller');
 
-router.post('/', commentController.createComment);
-router.get('/', commentController.getAllComments);
-router.get('/:id', commentController.getCommentById);
-router.delete('/:id', commentController.deleteComment);
+router.post('/', authenticateToken, commentsController.createComment);
+
+router.get('/', authenticateToken, commentsController.getAllComments);
+
+router.get('/:id', authenticateToken, commentsController.getCommentById);
+
+router.delete('/:id', authenticateToken, commentsController.deleteComment);
 
 module.exports = router;

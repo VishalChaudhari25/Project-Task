@@ -1,25 +1,22 @@
 {
   "name": "basic-node-app",
   "version": "1.0.0",
+  "description": "A simple Node.js app with authentication and CRUD operations",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "pg": "^8.16.0",
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
+    "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
-  },
-  "description": "",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+    "nodemon": "^3.0.2"
+  }
 }

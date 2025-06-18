@@ -3,7 +3,13 @@ const { Comment, User, Post } = require('../models');
 // Create a new comment
 exports.createComment = async (req, res) => {
   try {
-    const { description, postId, userId } = req.body;
+    const { description, postId } = req.body;
+    const userId = req.user.id; 
+
+    if (!description || !postId) {
+      return res.status(400).json({ message: 'Description and postId are required' });
+    }
+
     const comment = await Comment.create({ description, postId, userId });
     res.status(201).json(comment);
   } catch (err) {
@@ -33,7 +39,7 @@ exports.getCommentById = async (req, res) => {
   try {
     const comment = await Comment.findByPk(req.params.id, {
       include: [
-        { model: User, as: 'user', attributes: ['id', 'firstname'] },
+        { model: User, as: 'user', attributes: ['id', 'firstname', 'lastname'] },
         { model: Post, as: 'post', attributes: ['id', 'title'] }
       ],
     });
