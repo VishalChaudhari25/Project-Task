@@ -1,4 +1,4 @@
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Comment = sequelize.define(
     'Comment',
     {
@@ -33,8 +33,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: 'Comments',
-      timestamps: true,
-      underscored: true,
+      timestamps: false,
+      underscored: false,
     }
   );
 

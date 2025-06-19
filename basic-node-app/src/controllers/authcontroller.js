@@ -1,10 +1,9 @@
+import User from '../models/user.model.js';
+import sign  from 'jsonwebtoken';
+import {comparePassword} from '../utils/hashpassword.js';
 
-const db = require('../models');
-const User = db.User;
-const jwt = require('jsonwebtoken');
-const { comparePassword } = require('../utils/hashpassword'); 
 
-exports.login = async (req, res) => {
+export async function login(req, res) {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -22,7 +21,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign(
+    const token = sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
@@ -33,4 +32,4 @@ exports.login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}

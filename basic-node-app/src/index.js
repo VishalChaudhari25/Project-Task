@@ -1,14 +1,15 @@
-require('dotenv').config();
-const express = require('express');
-const db = require('./models');
+import express, { json } from 'express';
+import db from './models/index.js';
 
-const userRoutes = require('./routes/user.routes');
-const postRoutes = require('./routes/post.routes');
-const commentRoutes = require('./routes/comments.routes'); 
-const authRoutes = require('./routes/authroutes'); 
+const { sequelize } = db;
+
+import userRoutes from './routes/user.routes.js';
+import postRoutes from './routes/post.routes.js';
+import commentRoutes from './routes/comments.routes.js'; 
+import authRoutes from './routes/authroutes.js'; 
 
 const app = express();
-app.use(express.json());
+app.use(express.json()); // Don't forget to parse JSON bodies!
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -21,16 +22,16 @@ app.get('/', (req, res) => {
   res.send('Server is running!');
 });
 
-// Fallback route
+// Fallback route (keep this LAST)
 app.use((req, res) => {
   res.status(404).send('Route not found');
 });
 
 // DB connection
-db.sequelize.authenticate()
+sequelize.authenticate()
   .then(() => {
     console.log('Database connected...');
-    return db.sequelize.sync({ force: false }); 
+    return sequelize.sync({ force: false }); 
   })
   .then(() => {
     const PORT = process.env.PORT || 3000;
