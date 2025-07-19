@@ -9,7 +9,7 @@ import commentRoutes from './routes/comments.routes.js';
 import authRoutes from './routes/authroutes.js'; 
 
 const app = express();
-app.use(express.json()); // Don't forget to parse JSON bodies!
+app.use(express.json()); 
 
 // Routes
 app.use('/api/auth', authRoutes);
