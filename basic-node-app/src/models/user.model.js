@@ -1,6 +1,6 @@
-const bcrypt = require('bcrypt');
+import { genSalt, hash, compare } from 'bcrypt';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
@@ -36,28 +36,28 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: 'Users',
-      timestamps: true,
+      timestamps: false,
       underscored: true,
     }
   );
 
   // Hash password before creating user
   User.beforeCreate(async (user) => {
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
+    const salt = await genSalt(10);
+    user.password = await hash(user.password, salt);
   });
 
   // Hash password before updating user if password field changed
   User.beforeUpdate(async (user) => {
     if (user.changed('password')) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(user.password, salt);
+      const salt = await genSalt(10);
+      user.password = await hash(user.password, salt);
     }
   });
 
   // Instance method to validate password
   User.prototype.validPassword = async function (password) {
-    return await bcrypt.compare(password, this.password);
+    return await compare(password, this.password);
   };
 
   return User;

@@ -1,7 +1,9 @@
-const { Comment, User, Post } = require('../models');
+import db from '../models/index.js';
+const { Comment } = db;
+import { hashPassword } from '../utils/hashpassword.js';
 
 // Create a new comment
-exports.createComment = async (req, res) => {
+export async function createComment(req, res) {
   try {
     const { description, postId } = req.body;
     const userId = req.user.id; 
@@ -16,10 +18,10 @@ exports.createComment = async (req, res) => {
     console.error('Error creating comment:', err);
     res.status(500).json({ error: err.message });
   }
-};
+}
 
 // Get all comments with associated user and post info
-exports.getAllComments = async (req, res) => {
+export async function getAllComments(req, res) {
   try {
     const comments = await Comment.findAll({
       include: [
@@ -32,10 +34,10 @@ exports.getAllComments = async (req, res) => {
     console.error('Error fetching comments:', err);
     res.status(500).json({ error: err.message });
   }
-};
+}
 
 // Get a single comment by ID with user and post info
-exports.getCommentById = async (req, res) => {
+export async function getCommentById(req, res) {
   try {
     const comment = await Comment.findByPk(req.params.id, {
       include: [
@@ -49,10 +51,10 @@ exports.getCommentById = async (req, res) => {
     console.error('Error fetching comment:', err);
     res.status(500).json({ error: err.message });
   }
-};
+}
 
 // Delete a comment by ID
-exports.deleteComment = async (req, res) => {
+export async function deleteComment(req, res) {
   try {
     const deleted = await Comment.destroy({ where: { id: req.params.id } });
     if (!deleted) return res.status(404).json({ message: 'Comment not found' });
@@ -61,4 +63,4 @@ exports.deleteComment = async (req, res) => {
     console.error('Error deleting comment:', err);
     res.status(500).json({ error: err.message });
   }
-};
+}

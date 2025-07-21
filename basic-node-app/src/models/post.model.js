@@ -1,4 +1,4 @@
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Post = sequelize.define(
     'Post',
     {
@@ -28,8 +28,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: 'Posts',
-      timestamps: true,
-      underscored: true,
+      timestamps: false,
+      underscored: false,
     }
   );
 

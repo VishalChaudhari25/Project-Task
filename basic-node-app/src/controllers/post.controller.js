@@ -1,7 +1,7 @@
-const { Post, User } = require('../models');
+import Post from '../models/index.js';
 
 // Create a new post (userId from auth token)
-exports.createPost = async (req, res) => {
+export async function createPost(req, res) {
   try {
     const userId = req.user.id;
     const { title, description } = req.body;
@@ -16,10 +16,10 @@ exports.createPost = async (req, res) => {
     console.error('Error creating post:', err);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}
 
 // Get posts by userId (from URL params)
-exports.getPostsByUser = async (req, res) => {
+export async function getPostsByUser(req, res) {
   try {
     const userId = req.params.userId;
     const posts = await Post.findAll({ where: { userId } });
@@ -28,10 +28,10 @@ exports.getPostsByUser = async (req, res) => {
     console.error('Error fetching posts:', err);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}
 
 // Update post by ID (only owner can update)
-exports.updatePost = async (req, res) => {
+export async function updatePost(req, res) {
   try {
     const postId = req.params.id;
     const userId = req.user.id;
@@ -50,10 +50,10 @@ exports.updatePost = async (req, res) => {
     console.error('Error updating post:', err);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}
 
 // Delete post by ID (only owner can delete)
-exports.deletePost = async (req, res) => {
+export async function deletePost(req, res) {
   try {
     const postId = req.params.id;
     const userId = req.user.id;
@@ -68,4 +68,4 @@ exports.deletePost = async (req, res) => {
     console.error('Error deleting post:', err);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}

@@ -1,12 +1,15 @@
-const express = require('express');
+import express from 'express';
+import authenticateToken from '../middleware/authmiddleware.js';
+import { createUser, getUsers, getUserById, updateUser, deleteUser } from '../controllers/user.controller.js';
 const router = express.Router();
-const authenticateToken = require('../middleware/authmiddleware');
-const userController = require('../controllers/user.controller');
 
-router.post('/', authenticateToken,userController.createUser);
-router.get('/', authenticateToken, userController.getUsers);
-router.get('/:id', authenticateToken, userController.getUserById);
-router.put('/:id', authenticateToken, userController.updateUser);
-router.delete('/:id', authenticateToken, userController.deleteUser);
+// Registration does NOT require authentication
+router.post('/', createUser);
 
-module.exports = router;
+// All other routes require authentication
+router.get('/', getUsers);
+router.get('/:id', authenticateToken, getUserById);
+router.put('/:id', authenticateToken, updateUser);
+router.delete('/:id', authenticateToken, deleteUser);
+
+export default router;

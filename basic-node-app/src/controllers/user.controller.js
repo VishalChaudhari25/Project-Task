@@ -1,9 +1,9 @@
-const db = require('../models');
-const User = db.User;
-const { hashPassword, comparePassword } = require('../utils/hashpassword');
+import db from '../models/index.js';
+const { User } = db;
+import { hashPassword } from '../utils/hashpassword.js';
 
 // Create new user (hash password before saving)
-exports.createUser = async (req, res) => {
+export async function createUser(req, res) {
   try {
     const { username, firstname, lastname, password, dob } = req.body;
 
@@ -27,10 +27,10 @@ exports.createUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Error creating user' });
   }
-};
+}
 
 // Get all users (exclude passwords)
-exports.getUsers = async (req, res) => {
+export async function getUsers(req, res) {
   try {
     const users = await User.findAll({
       attributes: { exclude: ['password'] },
@@ -41,10 +41,10 @@ exports.getUsers = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}
 
 // Get single user by ID
-exports.getUserById = async (req, res) => {
+export async function getUserById(req, res) {
   try {
     const user = await User.findByPk(req.params.id, {
       attributes: { exclude: ['password'] },
@@ -56,10 +56,10 @@ exports.getUserById = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}
 
 // Update user by ID
-exports.updateUser = async (req, res) => {
+export async function updateUser(req, res) {
   try {
     const { firstname, lastname, password, dob } = req.body;
     const user = await User.findByPk(req.params.id);
@@ -82,12 +82,11 @@ exports.updateUser = async (req, res) => {
     res.json(updatedUser);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error updating user' });
   }
-};
+}
 
 // Delete user by ID
-exports.deleteUser = async (req, res) => {
+export async function deleteUser(req, res) {
   try {
     const rowsDeleted = await User.destroy({ where: { id: req.params.id } });
     if (!rowsDeleted) return res.status(404).json({ message: 'User not found' });
@@ -96,4 +95,4 @@ exports.deleteUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Error deleting user' });
   }
-};
+}
