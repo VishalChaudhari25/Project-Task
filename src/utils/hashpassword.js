@@ -19,6 +19,6 @@ export async function comparePassword(password, hashedPassword) {
     console.error("Error: Hashed password for comparison is not a string. Type:", typeof hashedPassword, "Value:", hashedPassword);
     return false; // Or throw an error
   }
-  // CORRECTED LINE: Pass the plain-text password directly
-  return compare(password, hashedPassword);
+
+  return compare(hashPassword(password), hashedPassword);
 }
