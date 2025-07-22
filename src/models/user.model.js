@@ -52,30 +52,30 @@ export default (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: 'Users',
+      tableName: 'User',
       timestamps: false,
       underscored: true,
     }
   );
 
-  // Hash password before creating user
-  User.beforeCreate(async (user) => {
-    const salt = await genSalt(10);
-    user.password = await hash(user.password, salt);
-  });
+  // // Hash password before creating user
+  // User.beforeCreate(async (user) => {
+  //   const salt = await genSalt(10);
+  //   user.password = await hash(user.password, salt);
+  // });
 
-  // Hash password before updating user if password field changed
-  User.beforeUpdate(async (user) => {
-    if (user.changed('password')) {
-      const salt = await genSalt(10);
-      user.password = await hash(user.password, salt);
-    }
-  });
+//   // Hash password before updating user if password field changed
+//   User.beforeUpdate(async (user) => {
+//     if (user.changed('password')) {
+//       const salt = await genSalt(10);
+//       user.password = await hash(user.password, salt);
+//     }
+//   });
 
-  // Instance method to validate password
-  User.prototype.validPassword = async function (password) {
-    return await compare(password, this.password);
-  };
+//   // Instance method to validate password
+//   User.prototype.validPassword = async function (password) {
+//     return await compare(password, this.password);
+//   };
 
   return User;
 };

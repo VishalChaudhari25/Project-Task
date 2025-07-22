@@ -3,6 +3,7 @@ const { User } = db;
 import { comparePassword, hashPassword } from '../utils/hashpassword.js';
 import jwt from 'jsonwebtoken';
 import { updateUserService } from '../services/user.service.js';
+import bcrypt from 'bcrypt';
 
 // Login user
 export async function loginUser(req, res) {
@@ -25,7 +26,7 @@ export async function loginUser(req, res) {
     console.log('Type of password from request:', typeof password);
     console.log('Type of password from DB:', typeof user.password);
 
-    const isPasswordValid = await comparePassword(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       console.log('Password comparison failed for user:', user.email);

@@ -1,6 +1,6 @@
 import express from 'express';
 import authenticateToken from '../middleware/authmiddleware.js';
-import { login } from '../controllers/authcontroller.js';
+// import { login } from '../controllers/authcontroller.js';
 import { validationMiddleware } from '../middleware/validationMiddleware.js';
 import {
   createUser,

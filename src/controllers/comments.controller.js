@@ -1,7 +1,7 @@
 import { createCommentService } from '../services/comment.service.js';
 import db from '../models/index.js';
 const { Comment } = db;
-import { hashPassword } from '../utils/hashpassword.js';
+// import { hashPassword } from '../utils/hashpassword.js';
 
 // Create a new comment
 export async function createComment(req, res) {

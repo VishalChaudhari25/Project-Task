@@ -20,5 +20,5 @@ export async function comparePassword(password, hashedPassword) {
     return false; // Or throw an error
   }
 
-  return compare(hashPassword(password), hashedPassword);
+  return await compare(hashPassword(password), hashedPassword);
 }
