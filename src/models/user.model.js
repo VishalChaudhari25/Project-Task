@@ -4,6 +4,14 @@ export default (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
+      profilePicture: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4, // UUID auto-generated

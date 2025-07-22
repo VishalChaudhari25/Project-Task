@@ -1,8 +1,18 @@
 import express from 'express';
 import authenticateToken from '../middleware/authmiddleware.js';
-import { createUser, getUsers, getUserById, updateUser, deleteUser } from '../controllers/user.controller.js';
+import { updateUser } from '../controllers/user.controller.js';
+import { validationMiddleware } from '../middleware/validationMiddleware.js';
+import { updateUserSchema } from '../validator/user.validator.js';
+import { createUser, getUsers, getUserById, deleteUser } from '../controllers/user.controller.js';
+
 const router = express.Router();
 
+router.put(
+  '/profile',
+  authenticateToken,
+  validationMiddleware(updateUserSchema),
+  updateUser
+);
 // Registration does NOT require authentication
 router.post('/', createUser);
 

@@ -1,6 +1,18 @@
 import db from '../models/index.js';
 const { User } = db;
 import { hashPassword } from '../utils/hashpassword.js';
+import { updateUserService } from '../services/user.service.js';
+
+export async function updateUser(req, res) {
+  try {
+    const userId = req.user.id;
+    const updateData = req.body;
+    const updatedUser = await updateUserService(userId, updateData);
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
 
 // Create new user (hash password before saving)
 export async function createUser(req, res) {
@@ -55,33 +67,6 @@ export async function getUserById(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
-  }
-}
-
-// Update user by ID
-export async function updateUser(req, res) {
-  try {
-    const { firstname, lastname, password, dob } = req.body;
-    const user = await User.findByPk(req.params.id);
-
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    if (password) {
-      user.password = await hashPassword(password);
-    }
-
-    if (firstname !== undefined) user.firstname = firstname;
-    if (lastname !== undefined) user.lastname = lastname;
-    if (dob !== undefined) user.dob = dob;
-
-    await user.save();
-
-    const updatedUser = user.toJSON();
-    delete updatedUser.password;
-
-    res.json(updatedUser);
-  } catch (error) {
-    console.error(error);
   }
 }
 

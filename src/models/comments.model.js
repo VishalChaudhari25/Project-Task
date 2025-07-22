@@ -2,6 +2,14 @@ export default (sequelize, DataTypes) => {
   const Comment = sequelize.define(
     'Comment',
     {
+      parentCommentId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Comments',
+          key: 'id',
+        }
+      },
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
