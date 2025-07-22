@@ -24,4 +24,12 @@ db.User = userModel(sequelize, DataTypes);
 db.Post = postModel(sequelize, DataTypes);
 db.Comment = commentModel(sequelize, DataTypes);
 
+sequelize.sync({ alter: true }) // ✅ This alters the table structure without data loss
+  .then(() => {
+    console.log('✅ Database synchronized (altered)');
+  })
+  .catch((err) => {
+    console.error('❌ Failed to sync database:', err);
+  });
+  
 export default db;

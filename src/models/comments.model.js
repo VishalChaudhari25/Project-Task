@@ -3,7 +3,7 @@ export default (sequelize, DataTypes) => {
     'Comment',
     {
       parentCommentId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
           model: 'Comments',
@@ -24,7 +24,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'posts',  
+          model: 'Posts',  
           key: 'id',
         },
         onDelete: 'CASCADE',
@@ -33,7 +33,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'users',  
+          model: 'Users',  
           key: 'id',
         },
         onDelete: 'CASCADE',

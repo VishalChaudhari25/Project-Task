@@ -8,6 +8,15 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true
       },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+          len: [5,100] 
+        }
+      },
       bio: {
         type: DataTypes.TEXT,
         allowNull: true

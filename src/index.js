@@ -26,8 +26,10 @@ app.get('/', (req, res) => {
 
 // Fallback route (keep this LAST)
 app.use((req, res) => {
+  console.error(` Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).send('Route not found');
 });
+
 
 // DB connection
 sequelize.authenticate()
