@@ -103,7 +103,7 @@ export async function updateUser(req, res) {
     if (req.user.role !== 'admin' && req.user.id !== parseInt(userId, 10)) {
         return res.status(403).json({ message: 'Forbidden: You can only update your own profile or be an admin' });
     }
-
+    
     // Hash the new password if it's being updated
     if (password) {
         updateData.password = await hashPassword(password);

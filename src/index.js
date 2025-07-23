@@ -6,6 +6,7 @@ import { Client } from 'pg';
 
 const { sequelize } = db;
 
+
 import userRoutes from './routes/user.routes.js';
 import postRoutes from './routes/post.routes.js';
 import commentRoutes from './routes/comments.routes.js'; 
@@ -27,7 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
-
+app.use('/uploads', express.static('uploads'));
 // Test root route
 app.get('/', (req, res) => {
   res.send('Server is running!');
