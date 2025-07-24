@@ -20,7 +20,10 @@ import { authorizeRole } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
+import { forgotPassword, resetPassword } from '../controllers/user.controller.js';
 
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 router.post(
   '/',
   upload.single('profilePicture'),

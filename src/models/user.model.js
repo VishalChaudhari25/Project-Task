@@ -4,6 +4,14 @@ export default (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
+      resetPasswordToken: {
+      type: DataTypes.STRING, 
+      allowNull: true, 
+    },
+    resetPasswordExpires: {
+      type: DataTypes.DATE,
+      allowNull: true, 
+    },
       profilePicture: {
         type: DataTypes.STRING,
         allowNull: true
