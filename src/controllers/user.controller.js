@@ -40,41 +40,39 @@ async function sendEmail(to, subject, text, html) {
     throw new Error('Failed to send email.');
   }
 }
+import cloudinary from '../utils/cloudinary.js';
+import fs from 'fs';
 
-// Function to send email
-// async function sendEmail(to, subject, text, html) {
-//     console.log(`--- Attempting to Send Email ---`);
-//     console.log(`To: ${to}`);
-//     console.log(`Subject: ${subject}`);
-//     console.log(`Text: ${text}`);
-//     // console.log(`HTML: ${html}`); // HTML can be long, so logging it might be verbose
-//     console.log(`---------------------`);
+export async function uploadProfilePicture(req, res) {
+  try {
+    console.log('uploadProfilePicture triggered');
+    console.log('File:', req.file); // Confirm Cloudinary upload worked
 
-//     try {
-//         const transporter = nodemailer.createTransport({
-//             service: 'Gmail',
-//             auth: {
-//                 user: process.env.EMAIL_USER, //from .env
-//                 pass: process.env.EMAIL_PASS, //from .env
-//             },
-//         });
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
 
-//         const mailOptions = {
-//             from: process.env.EMAIL_USER, 
-//             to, 
-//             subject, 
-//             text, 
-//             html, 
-//         };
+    const userId = req.user?.id || req.body.userId;
+    const user = await User.findByPk(userId);
 
-//         await transporter.sendMail(mailOptions);
-//         console.log('Email sent successfully!');
-//     } catch (error) {
-//         console.error('Error sending email:', error);
-      
-//         throw new Error('Failed to send email.'); 
-//     }
-// }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    user.profilePicture = req.file.path || req.file.secure_url;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Upload successful',
+      imageUrl: req.file.path || req.file.secure_url,
+    });
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ message: 'Upload failed', error: error.message });
+  }
+}
+
+
 
 // Login user
 export async function loginUser(req, res) {
@@ -107,7 +105,7 @@ export async function loginUser(req, res) {
     console.log('Password is valid for user:', user.email);
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
