@@ -45,12 +45,13 @@ class AdminUserService {
   static async deleteUser(userId) {
     try {
       const user = await User.findByPk(userId);
+      // console.log(user)
 
       if (!user) {
         return false;
       }
 
-      await user.update({ is_active: false });
+      await user.destroy();
 
       return true;
     } catch (error) {
