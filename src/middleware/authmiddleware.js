@@ -16,7 +16,16 @@ export default function authenticateToken(req, res, next) {
       console.log(err);
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
-    req.user = user; // Attach decoded user (e.g. { id, role }) to request
+    req.user = user; 
     next();
   });
+}
+export function authorizeAdmin(req, res, next) {
+ console.log("hi", req.user)
+  if (req.user && (req.user.role === 'admin')) { 
+    next(); 
+  } else {
+    console.log(":", req.user);
+    res.status(403).json({ message: 'Access denied: Admin privileges required.' });
+  }
 }

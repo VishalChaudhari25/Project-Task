@@ -3,6 +3,8 @@ dotenv.config();
 import express, { json } from 'express';
 import db from './models/index.js';
 import { Client } from 'pg';
+import adminRoutes from './routes/admin.routes.js';
+
 
 const { sequelize } = db;
 import uploadRoutes from './routes/user.routes.js';
@@ -24,6 +26,7 @@ const app = express();
 app.use(express.json()); 
 
 // Routes
+app.use('/api/admin', adminRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

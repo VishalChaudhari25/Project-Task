@@ -1,6 +1,7 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import userModel from './user.model.js';
 import postModel from './post.model.js';
+import adminModel from './admin.model.js';
 import commentModel from './comments.model.js';
 import 'dotenv/config';
 const sequelize = new Sequelize(
@@ -17,13 +18,12 @@ const sequelize = new Sequelize(
 
 const db = {};
 db.sequelize = sequelize;
-//db.Sequelize = Sequelize;
 
 // Initialize and attach the User model
 db.User = userModel(sequelize, DataTypes);
 db.Post = postModel(sequelize, DataTypes);
 db.Comment = commentModel(sequelize, DataTypes);
-
+db.Admin = adminModel(sequelize,DataTypes);
 sequelize.sync({ alter: true }) 
   .then(() => {
     console.log('Database synchronized (altered)');

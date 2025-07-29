@@ -87,7 +87,7 @@ export async function loginUser(req, res) {
       console.log('User not found with email:', email);
       return res.status(401).json({ message: 'Invalid email' });
     }
-    console.log('User found:', user.email);
+    console.log('User found:', user.email, user.role);
 
     // Step 2: Log the passwords before comparison
     console.log('Password from request:', password);
@@ -105,7 +105,7 @@ export async function loginUser(req, res) {
     console.log('Password is valid for user:', user.email);
 
     const token = jwt.sign(
-      { id: user.id, role: user.email },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );

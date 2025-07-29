@@ -42,6 +42,16 @@ export default (sequelize, DataTypes) => {
           len: [3, 50],
         },
       },
+      role: {
+      type: DataTypes.STRING,
+      defaultValue: 'user', // Default role for new users
+      allowNull: false
+      },
+      is_active:{
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        allowNull: true
+      },
       firstname: {
         type: DataTypes.STRING,
         allowNull: true,
