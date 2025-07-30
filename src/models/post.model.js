@@ -20,7 +20,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'User', // Make sure this matches your User table name (usually lowercase plural)
+          model: 'User', 
           key: 'id',
         },
         onDelete: 'CASCADE',
