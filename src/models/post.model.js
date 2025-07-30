@@ -4,7 +4,7 @@ export default (sequelize, DataTypes) => {
     {
       id: {
         type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4, // UUID auto-generated
+        defaultValue: DataTypes.UUIDV4, 
         primaryKey: true,
         allowNull: false,
       },
@@ -21,19 +21,19 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         references: {
           model: 'User', 
-          key: 'id',
+          key: 'id',      
         },
         onDelete: 'CASCADE',
       },
     },
     {
-      tableName: 'Posts',
+      tableName: 'Post',
       timestamps: false,
       underscored: false,
     }
   );
 
-  Post.associate = (models) => {
+   Post.associate = (models) => {
     Post.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
   };
 
