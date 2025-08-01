@@ -35,12 +35,12 @@ import { forgotPassword, resetPassword } from '../controllers/user.controller.js
 
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
-// router.post(
-//   '/',
-//   upload.single('profilePicture'),
-//   validationMiddleware(createUserSchema),
-//   createUser
-// );
+router.post(
+  '/createuser',
+  // upload.single('profilePicture'),
+  validationMiddleware(createUserSchema),
+  createUser
+);
 
 
 
@@ -66,6 +66,7 @@ router.post('/upload-profile',
   },
   uploadProfilePicture
 );
+
 
 
 router.put(
