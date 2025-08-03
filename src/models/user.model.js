@@ -75,25 +75,23 @@ export default (sequelize, DataTypes) => {
       underscored: true,
     }
   );
+  User.associate=(models)=>{
+    User.belongsToMany(models.Post,{
+      through: models.Like,
+      foreignKey: 'userId',
+      as: 'likedPosts',
+    });
+  
+  User.hasMany(models.Follow, {
+      as: 'followers',
+      foreignKey: 'followingId', // <-- The User ID is the 'followingId' for followers
+    });
 
-  // // Hash password before creating user
-  // User.beforeCreate(async (user) => {
-  //   const salt = await genSalt(10);
-  //   user.password = await hash(user.password, salt);
-  // });
-
-//   // Hash password before updating user if password field changed
-//   User.beforeUpdate(async (user) => {
-//     if (user.changed('password')) {
-//       const salt = await genSalt(10);
-//       user.password = await hash(user.password, salt);
-//     }
-//   });
-
-//   // Instance method to validate password
-//   User.prototype.validPassword = async function (password) {
-//     return await compare(password, this.password);
-//   };
-
+    // User can follow many people
+    User.hasMany(models.Follow, {
+      as: 'following',
+      foreignKey: 'followerId', // <-- The User ID is the 'followerId' for people they follow
+    });
+  };
   return User;
 };

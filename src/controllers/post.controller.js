@@ -1,5 +1,5 @@
 import db from '../models/index.js';
-const { Post } = db;
+const { Post,User,Like } = db;
 import redis from '../utils/redisclient.js';
 
 // Create a new post (userId from auth token)
@@ -91,6 +91,7 @@ export async function deletePost(req, res) {
 
     // Invalidate Redis cache after delete
     await redis.del(`posts:${userId}`);
+    
 
     res.json({ message: 'Post deleted successfully' });
   } catch (err) {
@@ -98,3 +99,46 @@ export async function deletePost(req, res) {
     res.status(500).json({ message: 'Server error' });
   }
 }
+
+export const toggleReaction = async (req, res) => {
+  const { postId } = req.params;
+  const { isLiked } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const post = await Post.findByPk(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const existingReaction = await Like.findOne({
+      where: { postId, userId },
+    });
+
+    if (existingReaction) {
+      if (existingReaction.isLiked === isLiked) {
+        await existingReaction.destroy();
+        // Invalidate cache after deleting a reaction
+        await redis.del(`post:${postId}`); 
+        await redis.del(`posts:${userId}`);
+        return res.status(200).json({ message: 'Reaction removed' });
+      } else {
+        existingReaction.isLiked = isLiked;
+        await existingReaction.save();
+        // Invalidate cache after updating a reaction
+        await redis.del(`post:${postId}`);
+        await redis.del(`posts:${userId}`);
+        return res.status(200).json({ message: 'Reaction updated', isLiked: existingReaction.isLiked });
+      }
+    } else {
+      const newReaction = await Like.create({ postId, userId, isLiked });
+      // Invalidate cache after creating a new reaction
+      await redis.del(`post:${postId}`);
+      await redis.del(`posts:${userId}`);
+      return res.status(201).json({ message: 'New reaction created', isLiked: newReaction.isLiked });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

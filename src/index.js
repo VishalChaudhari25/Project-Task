@@ -15,13 +15,27 @@ import commentRoutes from './routes/comments.routes.js';
 import authRoutes from './routes/authroutes.js'; 
 
 const client = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'basic_node_app_db', // Connect to a default database to get the list
-  password: 'postgres',
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASS,
+  port: process.env.DB_PORT,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
-
+// const client = new Client({
+//   user: process.env.DB_USER,
+//   host: process.env.DB_HOST,
+//   database: process.env.DB_NAME,
+//   password: process.env.DB_PASS,
+//   port: process.env.DB_PORT,
+// });
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
 const app = express();
 app.use(express.json()); 
 
