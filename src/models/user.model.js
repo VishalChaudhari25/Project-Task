@@ -84,13 +84,13 @@ export default (sequelize, DataTypes) => {
   
   User.hasMany(models.Follow, {
       as: 'followers',
-      foreignKey: 'followingId', // <-- The User ID is the 'followingId' for followers
+      foreignKey: 'followingId', 
     });
 
     // User can follow many people
     User.hasMany(models.Follow, {
       as: 'following',
-      foreignKey: 'followerId', // <-- The User ID is the 'followerId' for people they follow
+      foreignKey: 'followerId', 
     });
   };
   return User;

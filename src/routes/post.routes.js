@@ -12,7 +12,7 @@ import {
 
 router.post('/:postId/reaction', authenticateToken, toggleReaction);
 router.post('/user/:userId', authenticateToken, createPost);
-router.get('/user/:userId', authenticateToken, getPostsByUser);
+// router.get('/user/:userId', authenticateToken, getPostsByUser);
 router.put('/:postId', authenticateToken, updatePost);
 router.delete('/:postId', authenticateToken, deletePost);
 

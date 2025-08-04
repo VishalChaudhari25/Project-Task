@@ -4,7 +4,7 @@ import authenticateToken from '../middleware/authmiddleware.js';
 import { toggleFollow, getFollowingPosts } from '../controllers/user.controller.js';
 import getUploadMiddleware from '../utils/multer.js';
 import { uploadProfilePicture } from '../controllers/user.controller.js';
-
+import { getPostsByUser } from '../controllers/post.controller.js';
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ import { authorizeRole } from '../middleware/roleMiddleware.js';
 
 import { forgotPassword, resetPassword } from '../controllers/user.controller.js';
 
-
+router.get('/:userId/posts', authenticateToken, getPostsByUser);
 router.post('/:followingId/follow', authenticateToken, toggleFollow);
 router.get('/feed', authenticateToken, getFollowingPosts);
 router.post('/forgot-password', forgotPassword);

@@ -36,6 +36,12 @@ db.Admin = adminModel(sequelize,DataTypes);
 db.Like = likeModel(sequelize,DataTypes);
 db.Follow = followModel(sequelize, DataTypes);
 
+Object.keys(db).forEach(modelName => {
+    if (db[modelName].associate) {
+        db[modelName].associate(db);
+    }
+});
+
 sequelize.sync({ alter: true }) 
   .then(() => {
     console.log('Database synchronized (altered)');

@@ -1,4 +1,5 @@
 import db from '../models/index.js';
+import { getFollowingPostsFeed, invalidateFeedCache } from '../services/feed.service.js';
 const { User,Post,Follow } = db;
 import { comparePassword, hashPassword } from '../utils/hashpassword.js';
 import jwt from 'jsonwebtoken';
@@ -334,61 +335,102 @@ export async function resetPassword(req, res) {
         res.status(500).json({ message: 'Error resetting password.' });
     }
 }
-
 export const toggleFollow = async (req, res) => {
-  const followerId = req.user.id;
-  const { followingId } = req.params;
+    const followerId = req.user.id;
+    const { followingId } = req.params;
 
-  if (followerId === followingId) {
-    return res.status(400).json({ message: 'You cannot follow yourself.' });
-  }
-
-  try {
-    const existingFollow = await Follow.findOne({
-      where: { followerId, followingId },
-    });
-
-    if (existingFollow) {
-      await existingFollow.destroy();
-      return res.status(200).json({ message: 'Unfollowed successfully.' });
-    } else {
-      await Follow.create({ followerId, followingId });
-      return res.status(201).json({ message: 'Followed successfully.' });
+    if (followerId === followingId) {
+        return res.status(400).json({ message: 'You cannot follow yourself.' });
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
 
-// Get posts only from users the current user is following
+    try {
+        const existingFollow = await Follow.findOne({
+            where: { followerId, followingId },
+        });
+
+        if (existingFollow) {
+            await existingFollow.destroy();
+            // Invalidate the follower's feed cache
+            await invalidateFeedCache(followerId);
+            return res.status(200).json({ message: 'Unfollowed successfully.' });
+        } else {
+            await Follow.create({ followerId, followingId });
+            // Invalidate the follower's feed cache
+            await invalidateFeedCache(followerId);
+            return res.status(201).json({ message: 'Followed successfully.' });
+        }
+    } catch (error) {
+        console.error("Toggle follow error:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+// export const toggleFollow = async (req, res) => {
+//   const followerId = req.user.id;
+//   const { followingId } = req.params;
+
+//   if (followerId === followingId) {
+//     return res.status(400).json({ message: 'You cannot follow yourself.' });
+//   }
+
+//   try {
+//     const existingFollow = await Follow.findOne({
+//       where: { followerId, followingId },
+//     });
+
+//     if (existingFollow) {
+//       await existingFollow.destroy();
+//       return res.status(200).json({ message: 'Unfollowed successfully.' });
+//     } else {
+//       await Follow.create({ followerId, followingId });
+//       return res.status(201).json({ message: 'Followed successfully.' });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
+// // Get posts only from users the current user is following
 export const getFollowingPosts = async (req, res) => {
-  const followerId = req.user.id;
+    const userId = req.user.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-  try {
-    const following = await Follow.findAll({
-      where: { followerId },
-      attributes: ['followingId'],
-    });
-
-    const followingIds = following.map((follow) => follow.followingId);
-
-    const posts = await Post.findAll({
-      where: {
-        userId: {
-          [Op.in]: followingIds,
-        },
-      },
-      include: {
-        model: User,
-        as: 'user',
-        attributes: ['id', 'username'],
-      },
-    });
-
-    res.status(200).json(posts);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
+    try {
+        const posts = await getFollowingPostsFeed(userId, page, limit);
+        return res.status(200).json(posts);
+    } catch (error) {
+        console.error("Error fetching user feed:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
 };
+// export const getFollowingPosts = async (req, res) => {
+//   const followerId = req.user.id;
+
+//   try {
+//     const following = await Follow.findAll({
+//       where: { followerId },
+//       attributes: ['followingId'],
+//     });
+
+//     const followingIds = following.map((follow) => follow.followingId);
+
+//     const posts = await Post.findAll({
+//       where: {
+//         userId: {
+//           [Op.in]: followingIds,
+//         },
+//       },
+//       include: {
+//         model: User,
+//         as: 'user',
+//         attributes: ['id', 'username'],
+//       },
+//     });
+
+//     res.status(200).json(posts);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };

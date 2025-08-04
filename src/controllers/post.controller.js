@@ -33,16 +33,31 @@ export async function getPostsByUser(req, res) {
     // Try Redis cache first
     const cachedData = await redis.get(cacheKey);
     if (cachedData) {
-      console.log(' Served from Redis cache');
+      console.log('Served from Redis cache');
       return res.json(JSON.parse(cachedData));
     }
 
     // If cache miss, fetch from DB
-    const posts = await Post.findAll({ where: { userId } });
+    const posts = await Post.findAll({
+      where: { userId },
+      include: [
+        {
+          model: User,
+          as: 'user', // Alias from Post.belongsTo(models.User)
+          attributes: ['id', 'username', 'profilePicture', 'firstname', 'lastname'],
+        },
+        {
+          model: Like,
+          as: 'likes', // Alias from Post.hasMany(models.Like)
+          attributes: ['userId'],
+        }
+      ],
+      // order: [['createdAt', 'DESC']] // Order by creation date
+    });
 
     // Save to Redis with TTL
     await redis.set(cacheKey, JSON.stringify(posts), 'EX', 60);
-    console.log(' Fetched from DB and cached');
+    console.log('Fetched from DB and cached');
 
     res.json(posts);
   } catch (err) {
@@ -50,6 +65,32 @@ export async function getPostsByUser(req, res) {
     res.status(500).json({ message: 'Server error' });
   }
 }
+
+// export async function getPostsByUser(req, res) {
+//   const userId = req.params.userId;
+//   const cacheKey = `posts:${userId}`;
+
+//   try {
+//     // Try Redis cache first
+//     const cachedData = await redis.get(cacheKey);
+//     if (cachedData) {
+//       console.log(' Served from Redis cache');
+//       return res.json(JSON.parse(cachedData));
+//     }
+
+//     // If cache miss, fetch from DB
+//     const posts = await Post.findAll({ where: { userId } });
+
+//     // Save to Redis with TTL
+//     await redis.set(cacheKey, JSON.stringify(posts), 'EX', 60);
+//     console.log(' Fetched from DB and cached');
+
+//     res.json(posts);
+//   } catch (err) {
+//     console.error('Error fetching posts:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// }
 
 // Update post by ID (only owner can update)
 export async function updatePost(req, res) {

@@ -40,7 +40,7 @@ export default (sequelize, DataTypes) => {
       foreignKey: 'postId',
       as: 'likingUsers',
     });
-    Post.hasMany(models.Like, {foreignKey:'postId', as: 'likes '});
+    Post.hasMany(models.Like, {foreignKey:'postId', as: 'likes'});
   };
 
   return Post;

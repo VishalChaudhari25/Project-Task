@@ -31,11 +31,7 @@ const client = new Client({
 //   password: process.env.DB_PASS,
 //   port: process.env.DB_PORT,
 // });
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+
 const app = express();
 app.use(express.json()); 
 
