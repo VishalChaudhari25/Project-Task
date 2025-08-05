@@ -23,48 +23,145 @@ export async function createPost(req, res) {
     res.status(500).json({ message: 'Server error' });
   }
 }
-
-// Get posts by userId (from URL params) with Redis caching
-export async function getPostsByUser(req, res) {
-  const userId = req.params.userId;
-  const cacheKey = `posts:${userId}`;
-
+//Report post
+export const reportPost = async (req, res) => {
   try {
-    // Try Redis cache first
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      console.log('Served from Redis cache');
-      return res.json(JSON.parse(cachedData));
+    const reporterId = req.user.id;
+    const { reportedPostId } = req.params;
+    const { reason } = req.body;
+
+    const post = await Post.findByPk(reportedPostId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
     }
 
-    // If cache miss, fetch from DB
-    const posts = await Post.findAll({
-      where: { userId },
-      include: [
-        {
-          model: User,
-          as: 'user', // Alias from Post.belongsTo(models.User)
-          attributes: ['id', 'username', 'profilePicture', 'firstname', 'lastname'],
-        },
-        {
-          model: Like,
-          as: 'likes', // Alias from Post.hasMany(models.Like)
-          attributes: ['userId'],
-        }
-      ],
-      // order: [['createdAt', 'DESC']] // Order by creation date
+    const report = await Report.create({
+      reporterId,
+      reportedPostId,
+      reason,
     });
 
-    // Save to Redis with TTL
-    await redis.set(cacheKey, JSON.stringify(posts), 'EX', 60);
-    console.log('Fetched from DB and cached');
-
-    res.json(posts);
-  } catch (err) {
-    console.error('Error fetching posts:', err);
+    res.status(201).json({ message: 'Post reported successfully', report });
+  } catch (error) {
+    console.error('Error reporting post:', error);
     res.status(500).json({ message: 'Server error' });
   }
-}
+};
+
+
+// Get posts by userId (from URL params) with Redis caching
+export const getPostsByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const requestingUserId = req.user.id; // User making the request
+
+        const user = await User.findByPk(userId, {
+            attributes: ['id', 'username', 'isPrivate'] // Fetch the isPrivate field
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if the user is private and the requester is not a follower
+        if (user.isPrivate && requestingUserId !== user.id) {
+            const isFollowing = await db.Follow.findOne({
+                where: {
+                    followerId: requestingUserId,
+                    followingId: user.id
+                }
+            });
+            if (!isFollowing) {
+                return res.status(403).json({ message: 'This is a private account. You must be a follower to view posts.' });
+            }
+        }
+
+        // Proceed to fetch posts if the account is public or the user is a follower
+        const cacheKey = `userPosts:${userId}`;
+        const cachedPosts = await redisClient.get(cacheKey);
+
+        if (cachedPosts) {
+            console.log('Served from Redis cache');
+            return res.status(200).json(JSON.parse(cachedPosts));
+        }
+
+        const posts = await Post.findAll({
+            where: { userId },
+            include: [
+                {
+                    model: User,
+                    as: 'user',
+                    attributes: ['id', 'username', 'profilePicture'],
+                },
+                {
+                    model: Like,
+                    as: 'likes',
+                    attributes: ['id', 'userId'],
+                },
+                {
+                    model: Comment,
+                    as: 'comments',
+                    attributes: ['id', 'content', 'userId'],
+                    include: {
+                        model: User,
+                        as: 'user',
+                        attributes: ['id', 'username'],
+                    },
+                },
+            ],
+            order: [['createdAt', 'DESC']],
+        });
+
+        await redisClient.setEx(cacheKey, 3600, JSON.stringify(posts));
+        console.log('Fetched from DB and cached');
+
+        res.status(200).json(posts);
+
+    } catch (error) {
+        console.error('Error fetching user posts:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+// export async function getPostsByUser(req, res) {
+//   const userId = req.params.userId;
+//   const cacheKey = `posts:${userId}`;
+
+//   try {
+//     // Try Redis cache first
+//     const cachedData = await redis.get(cacheKey);
+//     if (cachedData) {
+//       console.log('Served from Redis cache');
+//       return res.json(JSON.parse(cachedData));
+//     }
+
+//     // If cache miss, fetch from DB
+//     const posts = await Post.findAll({
+//       where: { userId },
+//       include: [
+//         {
+//           model: User,
+//           as: 'user', // Alias from Post.belongsTo(models.User)
+//           attributes: ['id', 'username', 'profilePicture', 'firstname', 'lastname'],
+//         },
+//         {
+//           model: Like,
+//           as: 'likes', // Alias from Post.hasMany(models.Like)
+//           attributes: ['userId'],
+//         }
+//       ],
+//       // order: [['createdAt', 'DESC']] // Order by creation date
+//     });
+
+//     // Save to Redis with TTL
+//     await redis.set(cacheKey, JSON.stringify(posts), 'EX', 60);
+//     console.log('Fetched from DB and cached');
+
+//     res.json(posts);
+//   } catch (err) {
+//     console.error('Error fetching posts:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// }
 
 // export async function getPostsByUser(req, res) {
 //   const userId = req.params.userId;

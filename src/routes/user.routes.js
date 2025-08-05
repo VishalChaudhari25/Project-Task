@@ -1,11 +1,10 @@
 import express from 'express';
 import authenticateToken from '../middleware/authmiddleware.js';
 // import { login } from '../controllers/authcontroller.js';
-import { toggleFollow, getFollowingPosts } from '../controllers/user.controller.js';
 import getUploadMiddleware from '../utils/multer.js';
 import { uploadProfilePicture } from '../controllers/user.controller.js';
 import { getPostsByUser } from '../controllers/post.controller.js';
-
+import { toggleFollow, getFollowingPosts, toggleAccountPrivacy } from '../controllers/user.controller.js';
 const router = express.Router();
 
 
@@ -17,7 +16,9 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-  loginUser
+  loginUser,
+  toggleBlock, 
+  reportUser
 } from '../controllers/user.controller.js';
 import {
   createUserSchema,
@@ -31,6 +32,9 @@ import { authorizeRole } from '../middleware/roleMiddleware.js';
 
 import { forgotPassword, resetPassword } from '../controllers/user.controller.js';
 
+router.post('/:blockedId/block', authenticateToken, toggleBlock);
+router.post('/:reportedUserId/report', authenticateToken, reportUser);
+router.post('/privacy-toggle', authenticateToken, toggleAccountPrivacy);
 router.get('/:userId/posts', authenticateToken, getPostsByUser);
 router.post('/:followingId/follow', authenticateToken, toggleFollow);
 router.get('/feed', authenticateToken, getFollowingPosts);

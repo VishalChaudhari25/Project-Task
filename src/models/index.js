@@ -5,6 +5,8 @@ import adminModel from './admin.model.js';
 import commentModel from './comments.model.js';
 import likeModel from './like.model.js';
 import followModel from './follow.model.js';
+import blockModel from './block.model.js';
+import reportModel from './report.model.js';
 import 'dotenv/config';
 
 const sequelize = new Sequelize(
@@ -35,13 +37,19 @@ db.Comment = commentModel(sequelize, DataTypes);
 db.Admin = adminModel(sequelize,DataTypes);
 db.Like = likeModel(sequelize,DataTypes);
 db.Follow = followModel(sequelize, DataTypes);
+db.Block = blockModel(sequelize, DataTypes);
+db.Report = reportModel(sequelize, DataTypes);
 
 Object.keys(db).forEach(modelName => {
     if (db[modelName].associate) {
         db[modelName].associate(db);
     }
 });
-
+db.User.hasMany(db.Block, { foreignKey: 'blockerId', as: 'BlocksMade' });
+db.User.hasMany(db.Block, { foreignKey: 'blockedId', as: 'BlocksReceived' });
+db.Post.hasMany(db.Report, { foreignKey: 'reportedPostId', as: 'Reports' });
+db.User.hasMany(db.Report, { foreignKey: 'reporterId', as: 'ReportsMade' });
+db.User.hasMany(db.Report, { foreignKey: 'reportedUserId', as: 'ReportsReceived' });
 sequelize.sync({ alter: true }) 
   .then(() => {
     console.log('Database synchronized (altered)');

@@ -1,6 +1,6 @@
 import db from '../models/index.js';
 import { getFollowingPostsFeed, invalidateFeedCache } from '../services/feed.service.js';
-const { User,Post,Follow } = db;
+const { User,Post,Follow,Block, Report } = db;
 import { comparePassword, hashPassword } from '../utils/hashpassword.js';
 import jwt from 'jsonwebtoken';
 import { updateUserService } from '../services/user.service.js';
@@ -8,40 +8,119 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto'; // Import crypto for token generation
 import nodemailer from 'nodemailer'; 
 import { Op } from 'sequelize';
-
-//send email
-async function sendEmail(to, subject, text, html) {
-  console.log(`--- Attempting to Send Email ---`);
-  console.log(`To: ${to}`);
-  console.log(`Subject: ${subject}`);
-  console.log(`ENV Email: ${process.env.EMAIL_USER}`);
-  console.log(`ENV Pass Exists: ${!!process.env.EMAIL_PASS}`);
-  console.log(`---------------------`);
-
+import { sendEmail } from '../services/email.service.js';
+export const toggleBlock = async (req, res) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+    const blockerId = req.user.id;
+    const { blockedId } = req.params;
+
+    if (blockerId === parseInt(blockedId)) {
+      return res.status(400).json({ message: 'Cannot block yourself' });
+    }
+
+    const existingBlock = await Block.findOne({
+      where: { blockerId, blockedId },
     });
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      text,
-      html,
-    };
+    if (existingBlock) {
+      await existingBlock.destroy();
+      return res.status(200).json({ message: 'User unblocked successfully' });
+    } else {
+      // Check if the other user has blocked the current user
+      const isBlockedByOther = await Block.findOne({
+        where: { blockerId: blockedId, blockedId: blockerId },
+      });
 
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully!');
+      if (isBlockedByOther) {
+        return res.status(403).json({ message: 'You cannot block this user. They have already blocked you.' });
+      }
+
+      await Block.create({ blockerId, blockedId });
+      
+      // If a user blocks someone they were following, the follow relationship should be removed
+      await Follow.destroy({
+        where: {
+          [Op.or]: [
+            { followerId: blockerId, followingId: blockedId },
+            { followerId: blockedId, followingId: blockerId },
+          ],
+        },
+      });
+
+      return res.status(200).json({ message: 'User blocked successfully' });
+    }
   } catch (error) {
-    console.error(' Error sending email:', error); // ← now logs the full SMTP error
-    throw new Error('Failed to send email.');
+    console.error('Error toggling block:', error);
+    res.status(500).json({ message: 'Server error' });
   }
-}
+};
+
+// Report a user
+export const reportUser = async (req, res) => {
+  try {
+    const reporterId = req.user.id;
+    const { reportedUserId } = req.params;
+    const { reason } = req.body;
+
+    if (reporterId === parseInt(reportedUserId)) {
+      return res.status(400).json({ message: 'Cannot report yourself' });
+    }
+    
+    // Check if a block relationship exists
+    const isBlocked = await Block.findOne({
+      where: { blockerId: reporterId, blockedId: reportedUserId },
+    });
+
+    if (isBlocked) {
+      return res.status(403).json({ message: 'You cannot report a user you have blocked.' });
+    }
+
+    const report = await Report.create({
+      reporterId,
+      reportedUserId,
+      reason,
+    });
+
+    res.status(201).json({ message: 'User reported successfully', report });
+  } catch (error) {
+    console.error('Error reporting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+//send email
+// async function sendEmail(to, subject, text, html) {
+//   console.log(`--- Attempting to Send Email ---`);
+//   console.log(`To: ${to}`);
+//   console.log(`Subject: ${subject}`);
+//   console.log(`ENV Email: ${process.env.EMAIL_USER}`);
+//   console.log(`ENV Pass Exists: ${!!process.env.EMAIL_PASS}`);
+//   console.log(`---------------------`);
+
+//   try {
+//     const transporter = nodemailer.createTransport({
+//       service: 'Gmail',
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     const mailOptions = {
+//       from: process.env.EMAIL_USER,
+//       to,
+//       subject,
+//       text,
+//       html,
+//     };
+
+//     await transporter.sendMail(mailOptions);
+//     console.log('Email sent successfully!');
+//   } catch (error) {
+//     console.error(' Error sending email:', error); // ← now logs the full SMTP error
+//     throw new Error('Failed to send email.');
+//   }
+// }
 import cloudinary from '../utils/cloudinary.js';
 import fs from 'fs';
 
@@ -336,59 +415,84 @@ export async function resetPassword(req, res) {
     }
 }
 export const toggleFollow = async (req, res) => {
+  try {
     const followerId = req.user.id;
     const { followingId } = req.params;
 
-    if (followerId === followingId) {
-        return res.status(400).json({ message: 'You cannot follow yourself.' });
+    if (followerId === parseInt(followingId)) {
+        return res.status(400).json({ message: 'Cannot follow yourself' });
     }
 
-    try {
-        const existingFollow = await Follow.findOne({
-            where: { followerId, followingId },
-        });
+    // Check if either user has blocked the other
+    const isBlocked = await Block.findOne({
+        where: {
+            [Op.or]: [
+                { blockerId: followerId, blockedId: followingId },
+                { blockerId: followingId, blockedId: followerId },
+            ],
+        },
+    });
 
-        if (existingFollow) {
-            await existingFollow.destroy();
-            // Invalidate the follower's feed cache
-            await invalidateFeedCache(followerId);
-            return res.status(200).json({ message: 'Unfollowed successfully.' });
-        } else {
-            await Follow.create({ followerId, followingId });
-            // Invalidate the follower's feed cache
-            await invalidateFeedCache(followerId);
-            return res.status(201).json({ message: 'Followed successfully.' });
+    if (isBlocked) {
+        return res.status(403).json({ message: 'You cannot follow this user due to a block relationship.' });
+    }
+
+    const existingFollow = await Follow.findOne({
+        where: { followerId, followingId },
+    });
+
+    if (existingFollow) {
+        await existingFollow.destroy();
+        return res.status(200).json({ message: 'Unfollowed successfully' });
+    } else {
+        const follow = await Follow.create({ followerId, followingId });
+        const followedUser = await User.findByPk(followingId);
+        const followerUser = await User.findByPk(followerId);
+        
+        if (followedUser && followedUser.email) {
+            const subject = 'New Follower Notification';
+            const message = `${followerUser.username} is now following you!`;
+            await sendEmail(followedUser.email, subject, message);
         }
-    } catch (error) {
-        console.error("Toggle follow error:", error);
-        res.status(500).json({ message: 'Server error' });
+
+        return res.status(201).json({ message: 'Followed successfully', follow });
     }
+  } catch (error) {
+    console.error('Error toggling follow:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
 };
+
 // export const toggleFollow = async (req, res) => {
-//   const followerId = req.user.id;
-//   const { followingId } = req.params;
+//     const followerId = req.user.id;
+//     const { followingId } = req.params;
 
-//   if (followerId === followingId) {
-//     return res.status(400).json({ message: 'You cannot follow yourself.' });
-//   }
-
-//   try {
-//     const existingFollow = await Follow.findOne({
-//       where: { followerId, followingId },
-//     });
-
-//     if (existingFollow) {
-//       await existingFollow.destroy();
-//       return res.status(200).json({ message: 'Unfollowed successfully.' });
-//     } else {
-//       await Follow.create({ followerId, followingId });
-//       return res.status(201).json({ message: 'Followed successfully.' });
+//     if (followerId === followingId) {
+//         return res.status(400).json({ message: 'You cannot follow yourself.' });
 //     }
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
+
+//     try {
+//         const existingFollow = await Follow.findOne({
+//             where: { followerId, followingId },
+//         });
+
+//         if (existingFollow) {
+//             await existingFollow.destroy();
+//             // Invalidate the follower's feed cache
+//             await invalidateFeedCache(followerId);
+//             return res.status(200).json({ message: 'Unfollowed successfully.' });
+//         } else {
+//             await Follow.create({ followerId, followingId });
+//             // Invalidate the follower's feed cache
+//             await invalidateFeedCache(followerId);
+//             return res.status(201).json({ message: 'Followed successfully.' });
+//         }
+//     } catch (error) {
+//         console.error("Toggle follow error:", error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
 // };
+
 
 // // Get posts only from users the current user is following
 export const getFollowingPosts = async (req, res) => {
@@ -404,33 +508,24 @@ export const getFollowingPosts = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
-// export const getFollowingPosts = async (req, res) => {
-//   const followerId = req.user.id;
+export async function toggleAccountPrivacy(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId);
 
-//   try {
-//     const following = await Follow.findAll({
-//       where: { followerId },
-//       attributes: ['followingId'],
-//     });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-//     const followingIds = following.map((follow) => follow.followingId);
+    user.isPrivate = !user.isPrivate; // Toggle the value
+    await user.save();
 
-//     const posts = await Post.findAll({
-//       where: {
-//         userId: {
-//           [Op.in]: followingIds,
-//         },
-//       },
-//       include: {
-//         model: User,
-//         as: 'user',
-//         attributes: ['id', 'username'],
-//       },
-//     });
-
-//     res.status(200).json(posts);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
+    res.status(200).json({
+      message: `Account is now ${user.isPrivate ? 'private' : 'public'}`,
+      isPrivate: user.isPrivate,
+    });
+  } catch (error) {
+    console.error('Error toggling account privacy:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}

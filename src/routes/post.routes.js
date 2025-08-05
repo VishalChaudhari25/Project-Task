@@ -7,9 +7,12 @@ import {
     getPostsByUser, 
     updatePost, 
     deletePost, 
-    toggleReaction 
+    toggleReaction ,
+    reportPost
 } from '../controllers/post.controller.js';
 
+
+router.post('/:reportedPostId/report', authenticateToken, reportPost);
 router.post('/:postId/reaction', authenticateToken, toggleReaction);
 router.post('/user/:userId', authenticateToken, createPost);
 // router.get('/user/:userId', authenticateToken, getPostsByUser);

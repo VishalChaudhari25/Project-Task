@@ -16,6 +16,11 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true
       },
+      isPrivate: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false, 
+        allowNull: false,
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
