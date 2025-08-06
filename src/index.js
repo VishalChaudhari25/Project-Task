@@ -4,6 +4,8 @@ import express, { json } from 'express';
 import db from './models/index.js';
 import { Client } from 'pg';
 import adminRoutes from './routes/admin.routes.js';
+import statusRoutes from './routes/status.routes.js';
+import { startStatusCleanupJob } from './jobs/statusCleanupJob.js';
 
 
 const { sequelize } = db;
@@ -36,6 +38,7 @@ const app = express();
 app.use(express.json()); 
 
 // Routes
+app.use('/api/statuses', statusRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/auth', authRoutes);
@@ -64,6 +67,7 @@ sequelize.authenticate()
   .then(() => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    startStatusCleanupJob();
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);

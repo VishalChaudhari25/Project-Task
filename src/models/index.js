@@ -7,6 +7,7 @@ import likeModel from './like.model.js';
 import followModel from './follow.model.js';
 import blockModel from './block.model.js';
 import reportModel from './report.model.js';
+import statusModel from './status.model.js';
 import 'dotenv/config';
 
 const sequelize = new Sequelize(
@@ -39,6 +40,7 @@ db.Like = likeModel(sequelize,DataTypes);
 db.Follow = followModel(sequelize, DataTypes);
 db.Block = blockModel(sequelize, DataTypes);
 db.Report = reportModel(sequelize, DataTypes);
+db.Status = statusModel(sequelize,DataTypes);
 
 Object.keys(db).forEach(modelName => {
     if (db[modelName].associate) {
