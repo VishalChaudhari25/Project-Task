@@ -352,7 +352,7 @@ export async function forgotPassword(req, res) {
 
         // Construct the reset URL
         // In a real app, replace 'http://localhost:3000' with your frontend domain
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+        const resetUrl = `${process.env.FRONTEND_URL}/?token=${resetToken}`;
 
         const emailSubject = 'Password Reset Request';
         const emailText = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
@@ -375,10 +375,49 @@ export async function forgotPassword(req, res) {
 }
 
 // Reset password functionality
+// export async function resetPassword(req, res) {
+//     try {
+//         const { token } = req.query; // Get token from query parameters
+//         const { newPassword } = req.body;
+//         console.log('Reset password request for token:', token);
+
+//         if (!token || !newPassword) {
+//             return res.status(400).json({ message: 'Token and new password are required.' });
+//         }
+
+//         const user = await User.findOne({
+//             where: {
+//                 resetPasswordToken: token,
+//                 resetPasswordExpires: { [db.Sequelize.Op.gt]: Date.now() } // Check if token is not expired
+//             }
+//         });
+
+//         if (!user) {
+//             console.log('Invalid or expired reset token:', token);
+//             return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+//         }
+
+//         // Hash the new password
+//         const hashedPassword = await hashPassword(newPassword);
+
+//         // Update user's password and clear reset token fields
+//         await user.update({
+//             password: hashedPassword,
+//             resetPasswordToken: null,
+//             resetPasswordExpires: null,
+//         });
+
+//         res.status(200).json({ message: 'Your password has been successfully reset.' });
+
+//     } catch (error) {
+//         console.error('Reset password error:', error);
+//         res.status(500).json({ message: 'Error resetting password.' });
+//     }
+// }
 export async function resetPassword(req, res) {
     try {
-        const { token } = req.query; // Get token from query parameters
         const { newPassword } = req.body;
+        const { token } = req.params;
         console.log('Reset password request for token:', token);
 
         if (!token || !newPassword) {
@@ -388,7 +427,8 @@ export async function resetPassword(req, res) {
         const user = await User.findOne({
             where: {
                 resetPasswordToken: token,
-                resetPasswordExpires: { [db.Sequelize.Op.gt]: Date.now() } // Check if token is not expired
+                // FIX: Use the imported 'Op' symbol directly
+                resetPasswordExpires: { [Op.gt]: Date.now() }
             }
         });
 
@@ -414,6 +454,7 @@ export async function resetPassword(req, res) {
         res.status(500).json({ message: 'Error resetting password.' });
     }
 }
+
 export const toggleFollow = async (req, res) => {
   try {
     const followerId = req.user.id;

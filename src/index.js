@@ -1,11 +1,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import cors from 'cors';
 import express, { json } from 'express';
 import db from './models/index.js';
 import { Client } from 'pg';
 import adminRoutes from './routes/admin.routes.js';
 import statusRoutes from './routes/status.routes.js';
 import { startStatusCleanupJob } from './jobs/statusCleanupJob.js';
+
 
 
 const { sequelize } = db;
@@ -36,12 +38,14 @@ const client = new Client({
 
 const app = express();
 app.use(express.json()); 
+app.use(cors());
 
 // Routes
+
+app.use('/api/auth', authRoutes);
 app.use('/api/statuses', statusRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', uploadRoutes);
-app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
